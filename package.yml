@@ -1,0 +1,15 @@
+package: community.lazycat.app.fastclaw
+version: 1.1.0
+name: FastClaw
+description: "Lightweight AI agent runtime with web console"
+min_os_version: 1.5.0
+author: fastclaw-ai
+license: Apache-2.0
+homepage: https://github.com/fastclaw-ai/fastclaw
+locales:
+  zh:
+    name: "FastClaw"
+    description: "轻量级 AI Agent 运行时：网页管理、技能、工具、渠道接入与 OpenAI 兼容 API"
+  en:
+    name: "FastClaw"
+    description: "Lightweight AI agent runtime with web console, skills, tools, channels and OpenAI-compatible API"

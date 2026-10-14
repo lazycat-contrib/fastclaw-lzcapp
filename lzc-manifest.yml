@@ -1,0 +1,85 @@
+application:
+  subdomain: fastclaw
+  background_task: true
+  multi_instance: false
+  public_path:
+    - /
+  upstreams:
+    - location: /
+      backend: http://fastclaw:18953/
+  injects:
+    # 首次初始化：捕获 onboard 请求中的管理员账号与密码
+    - id: fastclaw-capture-credentials
+      auth_required: false
+      on: request
+      when:
+        - /api/onboard
+      do: |
+        let payload = null;
+        try {
+          payload = ctx.body.getJSON();
+        } catch {
+          payload = null;
+        }
+        if (!payload || typeof payload !== "object") return;
+        if (typeof payload.username === "string" && payload.username) {
+          ctx.flow.set("fc_username", payload.username);
+        }
+        if (typeof payload.password === "string" && payload.password) {
+          ctx.flow.set("fc_password", payload.password);
+        }
+
+    # 创建成功后持久化，供登录页自动填充
+    - id: fastclaw-commit-credentials
+      auth_required: false
+      on: response
+      when:
+        - /api/onboard
+      do: |
+        if (ctx.status < 200 || ctx.status >= 300) return;
+        const username = ctx.flow.get("fc_username");
+        const password = ctx.flow.get("fc_password");
+        if (typeof username === "string" && username) {
+          ctx.persist.set("fastclaw.username", username);
+        }
+        if (typeof password === "string" && password) {
+          ctx.persist.set("fastclaw.password", password);
+        }
+
+    # 免密登录：登录页自动填充（不自动提交）
+    - id: fastclaw-login-autofill
+      when:
+        - /
+      do:
+        - src: builtin://simple-inject-password
+          params:
+            user:
+              $persist: fastclaw.username
+            password:
+              $persist: fastclaw.password
+            userSelector: "input[name='login']"
+            passwordSelector: "input[type='password']"
+            autoSubmit: false
+
+services:
+  fastclaw:
+    # upstream: birdxs/fastclaw:v1.1.0 (docker.io)
+    image: docker.1ms.run/birdxs/fastclaw:v1.1.0
+    environment:
+      - TZ=Asia/Shanghai
+      - FASTCLAW_HOME=/data/.fastclaw
+      - FASTCLAW_BIND=all
+      - FASTCLAW_PORT=18953
+      # SQLite 为默认存储（不设 STORAGE_TYPE / DSN 即使用 $FASTCLAW_HOME/fastclaw.db）
+    binds:
+      - /lzcapp/var/fastclaw:/data/.fastclaw
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -fsS
+        - http://127.0.0.1:18953/healthz
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
