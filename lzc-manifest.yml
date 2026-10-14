@@ -28,7 +28,6 @@ application:
         if (typeof payload.password === "string" && payload.password) {
           ctx.flow.set("fc_password", payload.password);
         }
-
     # 创建成功后持久化，供登录页自动填充
     - id: fastclaw-commit-credentials
       auth_required: false
@@ -45,7 +44,6 @@ application:
         if (typeof password === "string" && password) {
           ctx.persist.set("fastclaw.password", password);
         }
-
     # 免密登录：登录页自动填充（不自动提交）
     - id: fastclaw-login-autofill
       when:
@@ -60,10 +58,9 @@ application:
             userSelector: "input[name='login']"
             passwordSelector: "input[type='password']"
             autoSubmit: false
-
 services:
   fastclaw:
-    # upstream: birdxs/fastclaw:v1.1.0 (docker.io)
+    # upstream: birdxs/fastclaw:v1.1.0
     image: docker.1ms.run/birdxs/fastclaw:v1.1.0
     environment:
       - TZ=Asia/Shanghai
