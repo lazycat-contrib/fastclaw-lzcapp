@@ -60,8 +60,8 @@ application:
             autoSubmit: false
 services:
   fastclaw:
-    # upstream: birdxs/fastclaw:v1.1.0
-    image: docker.1ms.run/birdxs/fastclaw:v1.1.0
+    # upstream: birdxs/fastclaw:v1.4.0
+    image: docker.1ms.run/birdxs/fastclaw:v1.4.0
     environment:
       - TZ=Asia/Shanghai
       - FASTCLAW_HOME=/data/.fastclaw
